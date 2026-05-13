@@ -1,7 +1,6 @@
 {
   "type": "module",
   "dependencies": {
-    "puppeteer-core": "latest",
-    "@sparticuz/chromium-min": "latest"
+    "@google/genai": "latest"
   }
 }
