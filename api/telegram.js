@@ -1,7 +1,7 @@
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -50,12 +50,19 @@ ${text}
 5- ذكر مصدر موثوق
 `;
 
-    const response = await client.responses.create({
-      model: "gpt-5.5",
-      input: prompt,
+    const response = await anthropic.messages.create({
+      model: "claude-3-5-sonnet-20241022",
+      max_tokens: 1200,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
     });
 
-    const output = response.output_text;
+    const output =
+      response.content?.[0]?.text || "لم أستطع توليد المحتوى";
 
     await sendMessage(chatId, output);
 
@@ -63,6 +70,11 @@ ${text}
 
   } catch (error) {
     console.error(error);
+
+    await sendMessage(
+      chatId,
+      `❌ حدث خطأ:\n${error.message}`
+    );
 
     return res.status(200).json({
       ok: false,
