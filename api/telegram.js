@@ -7,74 +7,59 @@ const anthropic = new Anthropic({
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 async function sendMessage(chatId, text) {
-  await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text,
-    }),
-  });
+  return fetch(
+    `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+      }),
+    }
+  );
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(200).send("Telegram bot is running");
-  }
-
   try {
-    const update = req.body;
+    if (req.method !== "POST") {
+      return res.status(200).send("OK");
+    }
 
-    const chatId = update.message?.chat?.id;
-    const text = update.message?.text || "";
+    const body = req.body;
 
-    if (!chatId) {
+    const message = body.message;
+
+    if (!message) {
       return res.status(200).json({ ok: true });
     }
 
-    await sendMessage(chatId, "⏳ جاري توليد المحتوى...");
-
-    const prompt = `
-أنت خبير محتوى إنستقرام عربي.
-
-أنشئ محتوى احترافي عن:
-${text}
-
-المطلوب:
-1- عنوان جذاب
-2- نص قصير للصورة
-3- كابشن احترافي
-4- هاشتاقات مناسبة
-5- ذكر مصدر موثوق
-`;
+    const chatId = message.chat.id;
+    const userText = message.text || "";
 
     const response = await anthropic.messages.create({
       model: "claude-3-5-sonnet-20241022",
-      max_tokens: 1200,
+      max_tokens: 500,
       messages: [
         {
           role: "user",
-          content: prompt,
+          content: `أنشئ محتوى إنستقرام عربي قصير واحترافي عن:\n${userText}`,
         },
       ],
     });
 
-    const output =
-      response.content?.[0]?.text || "لم أستطع توليد المحتوى";
+    const aiText =
+      response.content?.[0]?.text ||
+      "لم أتمكن من توليد المحتوى.";
 
-    await sendMessage(chatId, output);
+    await sendMessage(chatId, aiText);
 
     return res.status(200).json({ ok: true });
 
   } catch (error) {
     console.error(error);
-
-    await sendMessage(
-      chatId,
-      `❌ حدث خطأ:\n${error.message}`
-    );
 
     return res.status(200).json({
       ok: false,
