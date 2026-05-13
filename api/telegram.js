@@ -51,14 +51,15 @@ async function createPromptWithClaude(userText) {
 ${userText}
 
 المطلوب:
-- صورة مربعة 1:1
-- تصميم Social Media Post
-- مناسب للعربية والخليج
-- تصميم نظيف واحترافي
-- لا تضع نصوص عربية طويلة داخل الصورة
-- استخدم عناصر بصرية تعبّر عن الفكرة
-- اترك مساحة نظيفة يمكن لاحقًا وضع نص عليها
-- اكتب prompt فقط بدون شرح
+- Square 1:1 Instagram social media post
+- Clean premium visual design
+- Suitable for Arabic/Gulf audience
+- Use visual elements that represent the topic
+- Do not generate long Arabic text inside the image
+- Leave clean empty space for future Arabic text overlay
+- Modern, professional, high-quality
+- No watermark
+- Return the prompt only, without explanation
 `,
         },
       ],
@@ -76,7 +77,7 @@ ${userText}
 
 async function generateImageWithGemini(prompt) {
   const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${GEMINI_API_KEY}`;
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`;
 
   const geminiRes = await fetch(url, {
     method: "POST",
@@ -102,16 +103,12 @@ async function generateImageWithGemini(prompt) {
   const data = await geminiRes.json();
 
   if (!geminiRes.ok) {
-    throw new Error(
-      data.error?.message || JSON.stringify(data)
-    );
+    throw new Error(data.error?.message || JSON.stringify(data));
   }
 
   const parts = data.candidates?.[0]?.content?.parts || [];
 
-  const imagePart = parts.find(
-    (part) => part.inlineData?.data
-  );
+  const imagePart = parts.find((part) => part.inlineData?.data);
 
   if (!imagePart) {
     throw new Error("Gemini did not return an image");
