@@ -1,6 +1,7 @@
 {
   "type": "module",
   "dependencies": {
-    "sharp": "latest"
+    "@vercel/og": "latest",
+    "react": "latest"
   }
 }
